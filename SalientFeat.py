@@ -6,14 +6,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from torchinfo import summary
-#from torchnlp_AC import *
-
-#mode='train'
-#mode='test'
-
-# /home/acrnjar/Dropbox/Thorsten_Project/pre_github
-
 #from Model import *
 
 import argparse
@@ -29,19 +21,12 @@ print("# TODO as input I could take categorical data to which apply ohe")
 parser.add_argument('--mode', default='test', type=str)
 
 # Input settings                                                                                                                                                 
-#parser.add_argument('--input_directory', default='./example_input/', type=str)
-#parser.add_argument('--input_name', default='protgpt2_sequences.dat', type=str)
-#parser.add_argument('--min_length', default=100, type=int)
-#parser.add_argument('--max_input_data', default=50000, type=int)
-#parser.add_argument('--max_eval_data', default=1000, type=int)
-#parser.add_argument('--remove_n', default=True, type=bool)
-
-#parser.add_argument('--max_dataset', default=1000, type=int) #100 #1000 #10000 
+parser.add_argument('--input_directory', default='./example_input/', type=str)
+parser.add_argument('--input_name', default='data.csv', type=str)
 
 # Training settings                                                                                                                  
 parser.add_argument('--n_epochs', default=100, type=int)
 parser.add_argument('--batch_size', default=200, type=int) #10 #16
-#parser.add_argument('--embed_dim', default=63, type=int) #64 #SE USI OHE: DEVE ESSERE UGUALE A VOCAB_SIZE!
 parser.add_argument('--hidden_dim', default=32, type=int) #32
 parser.add_argument('--learning_rate', default=0.01, type=float)
 
@@ -49,31 +34,24 @@ parser.add_argument('--max_feat', default=15, type=float)
 
 # Output settings                                                                                                                                  
 parser.add_argument('--log_freq', default=10, type=int)
-#parser.add_argument('--output_directory', default='./example_output/', type=str)
+parser.add_argument('--output_directory', default='./example_output/', type=str)
 
 args = parser.parse_args()
 
 mode=args.mode
 print("Mode:",mode)
 
-print("WARNING: train and test model are separated. If you update the model usage, make a new training to have a new .pth file to upload")
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#device='cuda'                                                                                                                                                                    
-#device = "cpu"                                                                                                                                                                    
 print("Device:",device)
-#tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
-#print("IL TOKENIZER NON DEVE PIU ESSERE BASIC ENGLISH MA USARE SPLIT COME IN AMINOX PERO CON WORDS INVECE CHE CON CHARACTERS")
+
 tokenizer = torchtext.data.utils.get_tokenizer(None) #if None, returns split() function    
 
 def simple_ohe(x,length):
     y=length*[0.]
     y[x-1]=1
-    return y #.float().to(device)
+    return y 
 def load_mixed_dataset(ngrams=1,min_freq=1,col_to_explain='Label'):
-    #print("AAA")
-    df=pd.read_csv('mixed_data.csv',sep=';')
-    #df=pd.read_csv('/home/acrnjar/Downloads/mushrooms.csv',sep=',')
+    df=pd.read_csv(args.input_directory+args.input_name,sep=';')
     position=0
     unique={}
     simil_vocab=[]
@@ -114,7 +92,6 @@ def load_mixed_dataset(ngrams=1,min_freq=1,col_to_explain='Label'):
         for i_col in range(len(df.columns)): #starting from 1 because the first column is the counting, automatically created
             col=df.columns[i_col]
             val=df[col][row]
-            #print(col,col_to_explain)
             if col != col_to_explain:
                 if (type(df[col][0])==str or type(df[col][0])==int): #categorical data
                     to_add=col+'_'+str(val) #in this way, every vocabulary entry will refer to a specific value of a specific feature: "feature_value"
@@ -148,7 +125,7 @@ def load_mixed_dataset(ngrams=1,min_freq=1,col_to_explain='Label'):
     
 def encode(x,voc=None,tokenizer=tokenizer):
     v = vocab if voc is None else voc
-    unk=v.get_stoi().get('7qo34c0v3lmo') #0 #alternativa: '0000' cioe un token che sicuramente non esiste
+    unk=v.get_stoi().get('7qo34c0v3lmo') 
     return [v.get_stoi().get(s,unk) for s in tokenizer(x)]
 
 def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = torch.nn.CrossEntropyLoss(),epoch_size=None, report_freq=200):
@@ -167,9 +144,8 @@ def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = torch.nn.CrossEn
         optimizer.zero_grad()
         out = net(input_for_net)
 
-        loss = loss_fn(out,labels) #cross_entropy(out,labels)
+        loss = loss_fn(out,labels) 
         if batch_idx==0 and epoch_idx==0: print("First loss:",loss.item(),batch_idx)
-        #print("loss:",loss)
         loss.backward()
         optimizer.step()
 
@@ -182,7 +158,6 @@ def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = torch.nn.CrossEn
             break
         if batch_idx%report_freq==0 or batch_idx==0:
             torch.save(net.state_dict(), './model.pth')
-    #print("Epoch Done: Loss:",loss.item(),"acc:",acc.item(),"count:",count,"acc/count:",acc.item()/count,"predicted/labels:",predicted,labels)
     print("Epoch Done: Loss:",loss.item(),"acc/count:",acc.item()/count,"predicted/labels:",predicted,labels)
 
 class Classifier_of_vocabulary(torch.nn.Module):                                                                                                                                 
@@ -190,43 +165,16 @@ class Classifier_of_vocabulary(torch.nn.Module):
         super().__init__()                                                                                                                                                         
         input_dim = input_length                                                                                                               
         output_dim = num_class                                                                                                                                                     
-        self.hidden_layer1 = torch.nn.Sequential(torch.nn.Linear(input_dim, n1)) #, torch.nn.ReLU()) #, nn.Dropout(0.3))                                                              
+        self.hidden_layer1 = torch.nn.Sequential(torch.nn.Linear(input_dim, n1)) 
+        self.output_layer = torch.nn.Sequential(torch.nn.Linear(n1, output_dim)) 
 
-        self.output_layer = torch.nn.Sequential(torch.nn.Linear(n1, output_dim)) #, torch.nn.LogSoftmax()) #nn.Sigmoid())
-
-        
-    def forward(self, x): #, labels):                                                                                                                                              
+    def forward(self, x):                                                                                                                                    
         output = self.hidden_layer1(x)                                                                                                                                             
         output = self.output_layer(output)                                                                                                                                         
         return output.to(device)                                                                                                                                                  
 
-max_string_len=22
-def padify(b,voc=None,tokenizer=tokenizer):
-    v = [encode(x[1],voc=voc,tokenizer=tokenizer) for x in b]
-    l = max_string_len #22 #max(map(len,v))
-    return ( # tuple of two tensors - labels and features
-        torch.LongTensor([t[0]-1 for t in b]),
-        torch.stack([torch.nn.functional.pad(torch.tensor(t),(0,l-len(t)),mode='constant',value=vocab.get_stoi().get('the')) for t in v])
-    )
-
-# Packed Sequences
-def pad_length(b):
-    # build vectorized sequence
-    v = [encode(x[1]) for x in b]
-    # compute max length of a sequence in this minibatch and length sequence itself
-    len_seq = list(map(len,v))
-    l = max(len_seq)
-    return ( # tuple of three tensors - labels, padded features, length sequence
-        torch.LongTensor([t[0]-1 for t in b]),
-        torch.stack([torch.nn.functional.pad(torch.tensor(t),(0,l-len(t)),mode='constant',value=0) for t in v]),
-        torch.tensor(len_seq)
-    )
-
-def merge_saliency_for_category(saliency,headers): #,method='average'):
-
-    print("LEN H:",len(headers))
-    print("LEN S:",len(saliency[0]))
-    
+def merge_saliency_for_category(saliency,headers): 
+   
     h_all=[]
     for i in range(len(headers)):
         h_all.append(headers[i].split('_')[0])
@@ -293,33 +241,6 @@ def plot_average_saliency(saliency,saliency_std,features,max_feat=None,png_name=
     plt.clf()
     print("DONE:",png_name)
 
-def explain_with_shap(net,data):
-    X=data
-    X.requires_grad_()
-    # https://towardsdatascience.com/pytorch-shap-explainable-convolutional-neural-networks-ece5f04c374f                                                                            
-    expl = shap.DeepExplainer(net,X)
-    shap_values = expl.shap_values(X)
-    shap_numpy = [np.swapaxes(s, 1, -1) for s in shap_values]
-    #test_numpy=np.swapaxes(X.cpu().numpy(), 1, -1)                                      
-    test_numpy=np.swapaxes(X.cpu().detach().numpy(), 1, -1)
-    
-    return shap_values,test_numpy
-
-def shap_summary_plot(shap_values,test_numpy,features,classes,png_name='shap.png',nlayers=20):
-    fig = plt.figure(1, figsize=(4, 4))
-    ##shap.force_plot(plot_cmap=color_list)                                                                                                                                        
-    shap.summary_plot(shap_values,test_numpy,show=False,feature_names=features,class_names=classes,max_display=nlayers) #,color_bar=color_list) #,class_names=[classes_map[ii] for ii in cat_model.classes_],plot_type="bar")                                                                                                                                         
-    fig.savefig(png_name,dpi=150)
-    plt.clf()
-    print("DONE:",png_name)
-
-
-def decode_text(encoded_word_list):
-    text_list=[]
-    for j0,word_encoded in enumerate(encoded_word_list):
-        text_list.append(vocab.get_itos()[int(word_encoded)])
-    return text_list
-
 def decode_categories(encoded_list,simil_vocab):
     categ_list=[]
     print("encoded_list:",len(encoded_list),encoded_list)
@@ -337,10 +258,6 @@ number_float_cols=len(float_headers)
 print("Total entries:",total_entries)
 print("Number of float columns:",number_float_cols)
 print("Vocabulary length:",len(vocab))
-
-for i,data in enumerate(full_dataset):
-    print(i,data,len(data[1]))
-    if (i==5): break #exit()
 
 train_loader = torch.utils.data.DataLoader(full_dataset, batch_size=args.batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(full_dataset, batch_size=1, shuffle=True)
@@ -387,13 +304,4 @@ elif mode=='test':
     sal_average=torch.mean(sals,dim=0)
     sal_std=torch.std(sals,dim=0,unbiased=False)
     plot_average_saliency(sal_average,sal_std,features=huniq,max_feat=len(huniq),png_name='saliency_average.png')
-
-#print("TO DO: perche l acc si pianta a un valore anche se la loss continua a fare saliscendi?")
-#print("Is the sorting forced?")
-#print("maybe use a wiki webcrawler? Or UNIPROT crawler")
-#print("Adjust embed_dim?")
-#print("come e possibile che ci siano degli unk? Vuol dire che stai mal costruendo il dizionario.")
-#print("ROC AUC?")
-
-#print("\n\n HAI RIPRISTINATO LA SOFTMAX????? \n\n RICREARE BENE LA DISTINZIONE TRA TRAIN E TEST\n\n EVENTUALMENTLY DOVRO ANCHE IMPLEMENTARE LA POSSIBILITA DI IMBALANCED DATA IN MIXED_DATASET.py, SIA PER CATEGORICAL CHE PER FLOAT\n\nCOME SI FA A BILANCIARE UNA VARIABILE CATEGORIALE? SE PER ESEMPIO M/F COME INFO MANCA: NON PUOI FARE UNA MEDIA!\n\n")
 
