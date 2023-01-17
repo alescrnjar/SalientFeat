@@ -28,4 +28,6 @@ Python modules required:
 
 # Example D: average saliency map
 
-![alt text](https://github.com/alescrnjar/SalientFeat/blob/main/example_output/saliency_average_D.png)
+<p align="center">
+<img width="500" src=https://github.com/alescrnjar/SalientFeat/blob/main/example_output/saliency_average_D.png>
+</p>
