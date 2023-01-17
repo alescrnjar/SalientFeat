@@ -6,7 +6,7 @@ import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = torch.nn.CrossEntropyLoss(),epoch_size=None, report_freq=200):
+def train_epoch(net,dataloader,input_flag, lr=0.01,optimizer=None,loss_fn = torch.nn.CrossEntropyLoss(),epoch_size=None, report_freq=200):
     optimizer = optimizer or torch.optim.Adam(net.parameters(),lr=lr)
     loss_fn = loss_fn.to(device)
     net.train()
@@ -31,8 +31,8 @@ def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = torch.nn.CrossEn
         if epoch_size and count>epoch_size:
             break
         if batch_idx%report_freq==0 or batch_idx==0:
-            torch.save(net.state_dict(), './model.pth')
-    print("Epoch Done: Loss:",loss.item(),"acc/count:",acc.item()/count,"predicted/labels:",predicted,labels)
+            torch.save(net.state_dict(), './model_'+input_flag+'.pth')
+    print("Epoch Done: Loss:",loss.item(),"acc/count:",acc.item()/count) #,"predicted/labels:",predicted,labels)
 
 class Classifier_of_vocabulary(torch.nn.Module):                                                                                                                                 
     def __init__(self, input_length, num_class, n1=20):
