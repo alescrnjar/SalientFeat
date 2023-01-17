@@ -155,11 +155,11 @@ def plot_average_saliency(saliency,saliency_std,features,max_feat=None,png_name=
     #plt.plot(np.linspace(0,max_feat,max_feat),torch.add(saliency[:max_feat],saliency_std[:max_feat]).cpu().numpy(),linewidth=0.5,color='C0')
     plt.errorbar(np.linspace(0,max_feat,max_feat),saliency[:max_feat].cpu().numpy(),yerr=saliency_std,fmt='none',elinewidth=1,ecolor='C0')
     plt.scatter(np.linspace(0,max_feat,max_feat),saliency[:max_feat].cpu().numpy(),color='C0')
-    plt.xlabel('Feature')
+    #plt.xlabel('Feature')
     plt.ylabel('Saliency Value')
     #plt.xticks(np.arange(max_feat),features[:max_feat],rotation=90)     
     plt.xticks(np.linspace(0,max_feat,max_feat),features[:max_feat],rotation=90)
-    fig.savefig(png_name,dpi=300)
+    fig.savefig(png_name,dpi=150)
     plt.clf()
     print("DONE:",png_name)
 
