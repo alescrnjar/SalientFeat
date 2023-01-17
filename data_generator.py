@@ -69,7 +69,7 @@ def make_dataset(n_categ, multiplicity, n_unique, rule='A'):
     col_names=[]
     for i_cat in range(n_categ):
         possible_values.append(make_categorical_list(unique_values(i_cat, n_unique),multiplicity))
-        col_names.append('Categ'+str(i_cat))
+        col_names.append('Cat.'+str(i_cat))
 
     counts=list(np.zeros(args.n_classes,dtype=int))
     
