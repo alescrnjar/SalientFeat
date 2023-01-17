@@ -12,7 +12,9 @@ tokenizer = torchtext.data.utils.get_tokenizer(None) #if None, returns split() f
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def simple_ohe(x,length):
-    # returns a one-hot encoding of x, of given length.
+    """
+    returns a one-hot encoding of x, of given length.
+    """
     y=length*[0.]
     y[x-1]=1
     return y 
@@ -96,12 +98,16 @@ def encode(x,voc=None,tokenizer=tokenizer):
     return [v.get_stoi().get(s,unk) for s in tokenizer(x)]                                                                                                                                              
 
 def merge_saliency_for_category(saliency,headers): 
-    h_all=[]
+    """
+    Produce average saliency map.
+    """
+    h_all=[] # All headers
     for i in range(len(headers)):
         h_all.append(headers[i].split('_')[0])
-    h_uniq=[]
+    h_uniq=[] # Unique headers
     for ha in h_all:
         if ha not in h_uniq: h_uniq.append(ha)
+    
     merged=torch.zeros(len(h_uniq))
     old_feat=headers[0].split('_')[0]
     som=0.0
@@ -120,6 +126,9 @@ def merge_saliency_for_category(saliency,headers):
     return h_uniq,merged
 
 def saliency(net,input_data,headers):
+    """
+    Calculate saliency map.
+    """
     X=input_data
     X.requires_grad_()
     out = net(X)
@@ -131,6 +140,9 @@ def saliency(net,input_data,headers):
     return h_uniq,merged
 
 def plot_saliency(saliency,features,max_feat=None,title='test sentence',png_name='saliency.png'):
+    """
+    Plot saliency map for single test instance.
+    """
     if max_feat==None: max_feat=len(saliency)
     fig = plt.figure(1, figsize=(4,4))
     plt.rcParams.update({'font.size': 4})
@@ -147,6 +159,9 @@ def plot_saliency(saliency,features,max_feat=None,title='test sentence',png_name
     print("DONE:",png_name)
 
 def plot_average_saliency(saliency,saliency_std,features,max_feat=None,png_name='saliency.png'):
+    """
+    Plot average saliency map for all features
+    """
     if max_feat==None: max_feat=len(saliency)
     fig = plt.figure(1, figsize=(4, 4))
     plt.rcParams.update({'font.size': 6.8})
