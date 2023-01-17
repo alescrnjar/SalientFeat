@@ -13,7 +13,7 @@ parser.add_argument('--input_directory', default='./example_input/', type=str)
 parser.add_argument('--input_flag', default='A', type=str)
 
 # Training settings                                                                                                                  
-parser.add_argument('--n_epochs', default=100, type=int)
+parser.add_argument('--n_epochs', default=10, type=int)
 parser.add_argument('--batch_size', default=200, type=int) #10 #16
 parser.add_argument('--hidden_dim', default=20, type=int) #32
 parser.add_argument('--learning_rate', default=0.01, type=float)
@@ -50,7 +50,7 @@ print("Vocabulary length:",len(vocab))
 
 train_loader = torch.utils.data.DataLoader(full_dataset, batch_size=args.batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(full_dataset, batch_size=1, shuffle=True)
-test_loader1 = torch.utils.data.DataLoader(full_dataset, batch_size=args.batch_size, shuffle=True)
+#test_loader1 = torch.utils.data.DataLoader(full_dataset, batch_size=args.batch_size, shuffle=True)
 
 print("train and test loader lengths:",len(train_loader),len(test_loader))
 
