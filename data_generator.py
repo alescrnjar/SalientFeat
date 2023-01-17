@@ -6,11 +6,11 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output_directory', default='./example_input/', type=str)
-parser.add_argument('--n_categ', default=8, type=int)
-parser.add_argument('--multiplicity', default=2, type=int)
-parser.add_argument('--n_unique', default=2, type=int)
-parser.add_argument('--n_classes', default=2, type=int)
-parser.add_argument('--example', default='A', type=str)
+parser.add_argument('--n_categ', default=4, type=int) # number of categories wanted 
+parser.add_argument('--n_unique', default=4, type=int) # allows for making unique letter+number combinations
+parser.add_argument('--multiplicity', default=4, type=int) # allows for making multiple categorical value for a single letter+number combination
+parser.add_argument('--n_classes', default=2, type=int) # number of classes (must match the labeling method in rule_for_label)
+parser.add_argument('--rule', default='A', type=str) # Index for labeling rule
 args = parser.parse_args()
 
 letters=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
@@ -29,29 +29,29 @@ def make_categorical_list(input_list,multiplicity=1):
             clist.append(lett+str(x))
     return(clist)
 
-def rule_for_label(counts,comb,example):
-    if example=='A':
+def rule_for_label(counts,comb,rule):
+    if rule=='A':
         if 'A' in comb[0]:
             label=1
             counts[0]+=1
         else:
             label=2
             counts[1]+=1
-    elif example=='B':
+    elif rule=='B':
         if 'B'in comb[1]:
             label=1
             counts[0]+=1
         else:
             label=2
             counts[1]+=1
-    elif example=='C':
+    elif rule=='C':
         if 'B' in comb[1] or 'C' in comb[2]:
             label=1
             counts[0]+=1
         else:
             label=2
             counts[1]+=1
-    elif example=='D':
+    elif rule=='D':
         if 'A' in comb[0] or 'B'in comb[1] or 'C' in comb[1]:
             label=1
             counts[0]+=1
@@ -63,7 +63,7 @@ def rule_for_label(counts,comb,example):
         exit()
     return counts,label            
 
-def make_dataset(n_categ, multiplicity, n_unique, example='A'):
+def make_dataset(n_categ, multiplicity, n_unique, rule='A'):
 
     possible_values=[]
     col_names=[]
@@ -80,7 +80,7 @@ def make_dataset(n_categ, multiplicity, n_unique, example='A'):
 
     combinations=list(product(*possible_values))
     for comb in combinations:
-        counts,label=rule_for_label(counts,comb,example)
+        counts,label=rule_for_label(counts,comb,rule)
         wclass='Class'+str(label)
         data['class'].append(wclass)
         for i_v,val in enumerate(comb):
@@ -89,7 +89,7 @@ def make_dataset(n_categ, multiplicity, n_unique, example='A'):
     print("Counts:",counts)
     return data
 
-data=make_dataset(n_categ=args.n_categ, multiplicity=args.multiplicity, n_unique=args.n_unique, example=args.example)
+data=make_dataset(n_categ=args.n_categ, multiplicity=args.multiplicity, n_unique=args.n_unique, rule=args.rule)
 df=pd.DataFrame(data=data) 
-csvname=args.output_directory+'data_'+args.example+'.csv'
+csvname=args.output_directory+'data_'+args.rule+'.csv'
 df.to_csv(csvname,sep=';',index=False)
