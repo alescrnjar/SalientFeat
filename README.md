@@ -4,7 +4,7 @@ SalientFeat is a Deep Learning model for the classification of categorical data,
 
 Here, categorial data rely on a pseudo-NLP vocabulary that consider whether each potential value of each categorical feature is present (1) or not (0). 
 
-The script data_generator.py allows for the creation of exemplary sets of categorical data, differently labeled according to customisable rules. Data consists in combinations or letters and numbers. Four examples are provided for a classification into 2 classes, according to four different rules:
+The script data_generator.py allows for the creation of exemplary sets of categorical data (e.g. four categories), differently labeled according to customisable rules. Data consists in combinations or letters and numbers. Four examples are provided for a classification into 2 classes, according to four different rules:
 
 * Example A: label 1 if 'A' in string value of category 0, label 2 otherwise. Expected average saliency map: category 0 should be revealed as the only one relevant for classification.
 
