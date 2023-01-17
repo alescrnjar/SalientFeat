@@ -12,10 +12,12 @@ tokenizer = torchtext.data.utils.get_tokenizer(None) #if None, returns split() f
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def simple_ohe(x,length):
+    # returns a one-hot encoding of x, of given length.
     y=length*[0.]
     y[x-1]=1
     return y 
-def load_mixed_dataset(input_dir, input_name, ngrams=1,min_freq=1,col_to_explain='Label'):
+
+def load_dataset(input_dir, input_name, ngrams=1,min_freq=1,col_to_explain='Label'):
     df=pd.read_csv(input_dir+input_name,sep=';')
     position=0
     unique={}
@@ -94,14 +96,12 @@ def encode(x,voc=None,tokenizer=tokenizer):
     return [v.get_stoi().get(s,unk) for s in tokenizer(x)]                                                                                                                                              
 
 def merge_saliency_for_category(saliency,headers): 
-   
     h_all=[]
     for i in range(len(headers)):
         h_all.append(headers[i].split('_')[0])
     h_uniq=[]
     for ha in h_all:
         if ha not in h_uniq: h_uniq.append(ha)
-    
     merged=torch.zeros(len(h_uniq))
     old_feat=headers[0].split('_')[0]
     som=0.0
@@ -126,9 +126,7 @@ def saliency(net,input_data,headers):
     index = torch.argmax(out)
     score_max = out[0][index]
     score_max.backward()
-    
     saliency=X.grad.data.abs()
-
     h_uniq,merged=merge_saliency_for_category(saliency,headers)
     return h_uniq,merged
 
@@ -147,12 +145,16 @@ def plot_saliency(saliency,features,max_feat=None,title='test sentence',png_name
     fig.savefig(png_name,dpi=150) 
     plt.clf()
     print("DONE:",png_name)
+
 def plot_average_saliency(saliency,saliency_std,features,max_feat=None,png_name='saliency.png'):
     if max_feat==None: max_feat=len(saliency)
     fig = plt.figure(1, figsize=(4, 4))
-    plt.plot(np.linspace(0,max_feat,max_feat),torch.add(saliency[:max_feat],-saliency_std[:max_feat]).cpu().numpy(),linewidth=0.5,color='C0')
-    plt.plot(np.linspace(0,max_feat,max_feat),saliency[:max_feat].cpu().numpy(),linewidth=1,color='C0')
-    plt.plot(np.linspace(0,max_feat,max_feat),torch.add(saliency[:max_feat],saliency_std[:max_feat]).cpu().numpy(),linewidth=0.5,color='C0')
+    plt.rcParams.update({'font.size': 6.8})
+    #plt.plot(np.linspace(0,max_feat,max_feat),torch.add(saliency[:max_feat],-saliency_std[:max_feat]).cpu().numpy(),linewidth=0.5,color='C0')
+    #plt.plot(np.linspace(0,max_feat,max_feat),saliency[:max_feat].cpu().numpy(),linewidth=1,color='C0')
+    #plt.plot(np.linspace(0,max_feat,max_feat),torch.add(saliency[:max_feat],saliency_std[:max_feat]).cpu().numpy(),linewidth=0.5,color='C0')
+    plt.errorbar(np.linspace(0,max_feat,max_feat),saliency[:max_feat].cpu().numpy(),yerr=saliency_std,fmt='none',elinewidth=1,ecolor='C0')
+    plt.scatter(np.linspace(0,max_feat,max_feat),saliency[:max_feat].cpu().numpy(),color='C0')
     plt.xlabel('Feature')
     plt.ylabel('Saliency Value')
     #plt.xticks(np.arange(max_feat),features[:max_feat],rotation=90)     
@@ -161,7 +163,7 @@ def plot_average_saliency(saliency,saliency_std,features,max_feat=None,png_name=
     plt.clf()
     print("DONE:",png_name)
 
-def decode_categories(encoded_list,simil_vocab):
+def decode_categories(encoded_list,vocab):
     categ_list=[]
     for j0,one_or_zero in enumerate(encoded_list):
         if int(one_or_zero)==1: categ_list.append(vocab[j0])
