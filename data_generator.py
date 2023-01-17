@@ -2,12 +2,16 @@ import numpy as np
 import pandas as pd
 import random
 from itertools import product
+import argparse
 
-n_categ=4
-multiplicity=4
-n_unique=4
-
-nclasses=2
+parser = argparse.ArgumentParser()
+parser.add_argument('--output_directory', default='./example_input/', type=str)
+parser.add_argument('--n_categ', default=8, type=int)
+parser.add_argument('--multiplicity', default=2, type=int)
+parser.add_argument('--n_unique', default=2, type=int)
+parser.add_argument('--n_classes', default=2, type=int)
+parser.add_argument('--example', default='A', type=str)
+args = parser.parse_args()
 
 letters=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 
@@ -25,20 +29,41 @@ def make_categorical_list(input_list,multiplicity=1):
             clist.append(lett+str(x))
     return(clist)
 
-def rule_for_label(counts,comb):
-    
-    #if 'A' in comb[0]:
-    #if 'B' in comb[1]:
-    if 'B' in comb[1] or 'C' in comb[2]:
-        label=1
-        counts[0]+=1
+def rule_for_label(counts,comb,example):
+    if example=='A':
+        if 'A' in comb[0]:
+            label=1
+            counts[0]+=1
+        else:
+            label=2
+            counts[1]+=1
+    elif example=='B':
+        if 'B'in comb[1]:
+            label=1
+            counts[0]+=1
+        else:
+            label=2
+            counts[1]+=1
+    elif example=='C':
+        if 'B' in comb[1] or 'C' in comb[2]:
+            label=1
+            counts[0]+=1
+        else:
+            label=2
+            counts[1]+=1
+    elif example=='D':
+        if 'A' in comb[0] or 'B'in comb[1] or 'C' in comb[1]:
+            label=1
+            counts[0]+=1
+        else:
+            label=2
+            counts[1]+=1
     else:
-        label=2
-        counts[1]+=1
-
+        print("Error: invalid rule for labeling.")
+        exit()
     return counts,label            
 
-def make_dataset(n_categ, multiplicity, n_unique):
+def make_dataset(n_categ, multiplicity, n_unique, example='A'):
 
     possible_values=[]
     col_names=[]
@@ -46,7 +71,7 @@ def make_dataset(n_categ, multiplicity, n_unique):
         possible_values.append(make_categorical_list(unique_values(i_cat, n_unique),multiplicity))
         col_names.append('Categ'+str(i_cat))
 
-    counts=list(np.zeros(nclasses,dtype=int))
+    counts=list(np.zeros(args.n_classes,dtype=int))
     
     data={}
     data['class']=[]
@@ -55,7 +80,7 @@ def make_dataset(n_categ, multiplicity, n_unique):
 
     combinations=list(product(*possible_values))
     for comb in combinations:
-        counts,label=rule_for_label(counts,comb)
+        counts,label=rule_for_label(counts,comb,example)
         wclass='Class'+str(label)
         data['class'].append(wclass)
         for i_v,val in enumerate(comb):
@@ -64,7 +89,7 @@ def make_dataset(n_categ, multiplicity, n_unique):
     print("Counts:",counts)
     return data
 
-data=make_dataset(n_categ=n_categ, multiplicity=multiplicity, n_unique=n_unique)
+data=make_dataset(n_categ=args.n_categ, multiplicity=args.multiplicity, n_unique=args.n_unique, example=args.example)
 df=pd.DataFrame(data=data) 
-csvname='./example_input/data.csv'
+csvname=args.output_directory+'data_'+args.example+'.csv'
 df.to_csv(csvname,sep=';',index=False)
